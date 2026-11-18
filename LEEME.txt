@@ -40,3 +40,7 @@ IMPORTANTE: abrir desde el mismo origen (por ejemplo, http://127.0.0.1:5500) par
 V7: Botón Descargar Excel (.xlsx) con formato, celdas de ubicación unidas, fórmulas y totales. Funciona sin conexión.
 
 V8: En móvil, Descargar Excel abre el menú Compartir del sistema para guardar el .xlsx en Archivos o enviarlo; si no existe, intenta la descarga directa.
+
+V9: El botón Descargar Excel descarga directamente un archivo .xlsx, sin menú compartir.
+Nota: El archivo ZIP es solo para instalar/actualizar el sitio.
+Chrome Android puede pedir permiso o guardar en Descargas según configuración del navegador.

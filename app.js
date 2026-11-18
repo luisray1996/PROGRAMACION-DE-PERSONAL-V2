@@ -152,19 +152,18 @@ $('excel').onclick=async()=>{
   zip.file('xl/styles.xml',styles);zip.file('xl/worksheets/sheet1.xml',sheet);
   const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const filename=`programacion_personal_${current}.xlsx`;
-  // Android/iOS: compartir archivo permite guardarlo en Descargas/Archivos.
-  // No depender únicamente de un clic asíncrono en un enlace Blob.
-  if(navigator.canShare && navigator.share){
-   const file=new File([blob],filename,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-   if(navigator.canShare({files:[file]})){
-    try { await navigator.share({files:[file],title:'Programación semanal de personal'}); return; }
-    catch(err){if(err.name==='AbortError')return;console.warn('Compartir no disponible, se intentará descarga:',err)}
-   }
-  }
+  // Descarga directa .xlsx en Chrome Android y navegadores de escritorio.
+  // No se usa navigator.share, ni se descarga un ZIP como resultado.
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';
-  document.body.appendChild(a);a.click();
-  setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},60000);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  a.setAttribute('download',filename);
+  a.style.position='fixed';a.style.left='-9999px';
+  document.body.appendChild(a);
+  a.click();
+  // Dar tiempo suficiente a Chrome móvil para iniciar la transferencia.
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},120000);
  }catch(e){console.error(e);alert('No se pudo generar Excel: '+e.message)}
 };
 
