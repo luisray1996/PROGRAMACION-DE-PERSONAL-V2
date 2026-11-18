@@ -64,45 +64,7 @@ function download(name,content,type){let blob=new Blob([content],{type}),url=URL
 $('backup').onclick=()=>download('respaldo_programacion_personal.json',JSON.stringify(db,null,2),'application/json');$('restore').onchange=async e=>{let file=e.target.files[0];if(!file)return;try{let data=JSON.parse(await file.text());if(!data||!data.weeks||!Array.isArray(data.locations)||!Array.isArray(data.labors))throw Error();if(!confirm('¿Reemplazar todos los datos locales por este respaldo?'))return;db=data;saveDb();
 // Exportación real XLSX sin internet: genera un libro Excel con colores, bordes,
 // ubicaciones agrupadas, seis días y totales calculados.
-$('excel').onclick=async()=>{
- try{
-  if(typeof JSZip==='undefined')throw Error('No se encontró la biblioteca de Excel');
-  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
-  const col=n=>{let s='';for(n++;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s};
-  const xmlCell=(r,c,value,style=0,formula=null)=>{
-   const ref=col(c)+r;
-   if(formula)return `<c r="${ref}" s="${style}"><f>${formula}</f><v>${Number(value)||0}</v></c>`;
-   if(typeof value==='number')return `<c r="${ref}" s="${style}"><v>${value}</v></c>`;
-   return `<c r="${ref}" s="${style}" t="inlineStr"><is><t>${esc(value)}</t></is></c>`;
-  };
-  let lines=[],merges=['A1:I1','A2:I2'],r=1;
-  lines.push(`<row r="${r}">${xmlCell(r,0,'PROGRAMACIÓN SEMANAL DE PERSONAL',1)}</row>`);r++;
-  lines.push(`<row r="${r}">${xmlCell(r,0,$('range').textContent,2)}</row>`);r++;
-  lines.push(`<row r="${r}">${['UBICACIÓN','LABORES','LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO','TOTAL'].map((v,i)=>xmlCell(r,i,v,3)).join('')}</row>`);r++;
-  let i=0;
-  for(const item of rows){
-   const start=i===0||rows[i-1].location!==item.location;
-   if(start){let count=1;while(i+count<rows.length&&rows[i+count].location===item.location)count++;if(count>1)merges.push(`A${r}:A${r+count-1}`)}
-   const dayCells=item.days.map((v,j)=>xmlCell(r,j+2,Number(v)||0,5)).join('');
-   const total=item.days.reduce((sum,v)=>sum+(Number(v)||0),0);
-   lines.push(`<row r="${r}" ht="30" customHeight="1">${start?xmlCell(r,0,item.location,4):''}${xmlCell(r,1,item.labor,6)}${dayCells}${xmlCell(r,8,total,7,`SUM(C${r}:H${r})`)}</row>`);
-   r++;i++;
-  }
-  const totals=Array.from({length:6},(_,j)=>rows.reduce((sum,item)=>sum+(Number(item.days[j])||0),0));
-  merges.push(`A${r}:B${r}`);
-  lines.push(`<row r="${r}">${xmlCell(r,0,'TOTAL POR DÍA',3)}${totals.map((v,j)=>xmlCell(r,j+2,v,8,`SUM(${col(j+2)}4:${col(j+2)}${r-1})`)).join('')}${xmlCell(r,8,totals.reduce((a,b)=>a+b,0),8,`SUM(C${r}:H${r})`)}</row>`);
-  const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0" showGridLines="0"/></sheetViews><sheetFormatPr defaultRowHeight="24"/><cols><col min="1" max="1" width="24" customWidth="1"/><col min="2" max="2" width="55" customWidth="1"/><col min="3" max="8" width="13" customWidth="1"/><col min="9" max="9" width="14" customWidth="1"/></cols><sheetData>${lines.join('')}</sheetData><mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells><pageMargins left="0.2" right="0.2" top="0.4" bottom="0.4" header="0.1" footer="0.1"/><pageSetup orientation="landscape" paperSize="9" fitToWidth="1"/></worksheet>`;
-  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="15"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="6"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF4B146E"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FF64218A"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FF91E594"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDFB6F5"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF9988AA"/></left><right style="thin"><color rgb="FF9988AA"/></right><top style="thin"><color rgb="FF9988AA"/></top><bottom style="thin"><color rgb="FF9988AA"/></bottom></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="9"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="1" fillId="3" borderId="1" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="2" fillId="4" borderId="1" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyBorder="1"><alignment horizontal="center" vertical="center"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" applyBorder="1"><alignment vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="2" fillId="5" borderId="1" applyFont="1" applyFill="1" applyBorder="1"><alignment horizontal="center"/></xf></cellXfs></styleSheet>`;
-  const zip=new JSZip();
-  zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`);
-  zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
-  zip.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Semana ${esc(current)}" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
-  zip.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
-  zip.file('xl/styles.xml',styles);zip.file('xl/worksheets/sheet1.xml',sheet);
-  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`programacion_personal_${current}.xlsx`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
- }catch(e){console.error(e);alert('No se pudo generar Excel: '+e.message)}
-};
+
 
 options();loadWeek(current);renderHistory();alert('Respaldo importado')}catch{alert('Archivo de respaldo inválido')}finally{e.target.value=''}};
 $('print').onclick=()=>window.print();$('printMonthly').onclick=()=>window.print();
@@ -188,8 +150,21 @@ $('excel').onclick=async()=>{
   zip.file('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Semana ${esc(current)}" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`);
   zip.file('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
   zip.file('xl/styles.xml',styles);zip.file('xl/worksheets/sheet1.xml',sheet);
-  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`programacion_personal_${current}.xlsx`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
+  const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const filename=`programacion_personal_${current}.xlsx`;
+  // Android/iOS: compartir archivo permite guardarlo en Descargas/Archivos.
+  // No depender únicamente de un clic asíncrono en un enlace Blob.
+  if(navigator.canShare && navigator.share){
+   const file=new File([blob],filename,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+   if(navigator.canShare({files:[file]})){
+    try { await navigator.share({files:[file],title:'Programación semanal de personal'}); return; }
+    catch(err){if(err.name==='AbortError')return;console.warn('Compartir no disponible, se intentará descarga:',err)}
+   }
+  }
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},60000);
  }catch(e){console.error(e);alert('No se pudo generar Excel: '+e.message)}
 };
 

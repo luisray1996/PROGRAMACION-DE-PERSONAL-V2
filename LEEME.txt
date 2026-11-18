@@ -38,3 +38,5 @@ VERSIÓN 6
 IMPORTANTE: abrir desde el mismo origen (por ejemplo, http://127.0.0.1:5500) para recuperar los datos anteriores.
 
 V7: Botón Descargar Excel (.xlsx) con formato, celdas de ubicación unidas, fórmulas y totales. Funciona sin conexión.
+
+V8: En móvil, Descargar Excel abre el menú Compartir del sistema para guardar el .xlsx en Archivos o enviarlo; si no existe, intenta la descarga directa.
