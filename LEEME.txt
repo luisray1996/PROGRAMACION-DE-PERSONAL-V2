@@ -36,3 +36,5 @@ VERSIÓN 6
 - El reporte mensual suma exclusivamente las semanas guardadas, por día calendario.
 - El almacenamiento usa la misma clave local que versiones anteriores para mantener el historial.
 IMPORTANTE: abrir desde el mismo origen (por ejemplo, http://127.0.0.1:5500) para recuperar los datos anteriores.
+
+V7: Botón Descargar Excel (.xlsx) con formato, celdas de ubicación unidas, fórmulas y totales. Funciona sin conexión.
