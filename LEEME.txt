@@ -44,3 +44,13 @@ V8: En móvil, Descargar Excel abre el menú Compartir del sistema para guardar 
 V9: El botón Descargar Excel descarga directamente un archivo .xlsx, sin menú compartir.
 Nota: El archivo ZIP es solo para instalar/actualizar el sitio.
 Chrome Android puede pedir permiso o guardar en Descargas según configuración del navegador.
+
+V10 - CATÁLOGO EDITABLE
+- Desde «Labores y ubicaciones» crea ubicaciones o labores nuevas.
+- Usa «⚙ Nueva ubicación o labor» desde la programación para abrir el catálogo.
+- Edita o quita nombres del catálogo con los botones de cada registro.
+- Las filas de la semana actual se agrupan por ubicación al añadir labores.
+- Los cambios de nombre no modifican automáticamente las semanas históricas guardadas.
+- Quitar una opción del catálogo no borra filas ya programadas.
+- Guarda la semana después de modificar filas para conservar la programación.
+- El catálogo se guarda en el almacenamiento local del navegador, NO en una base de datos compartida.

@@ -78,3 +78,20 @@
 @media print{
  #schedule tbody td.loc[rowspan]{vertical-align:middle!important;background:#7edc85!important;text-align:center!important;font-weight:bold!important;}
 }
+
+/* V10: administración de ubicaciones y labores */
+.catalog-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#38204f;border:1px solid #64407d;border-radius:8px;padding:10px 12px;margin:7px 0}
+.catalog-item>span{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px}
+.catalog-actions{display:flex;gap:6px;flex-wrap:wrap}
+.catalog-actions button{font-size:12px;padding:8px 10px}
+#catalogo .panel h3{margin-top:24px}
+#catalogo .panel h3 small{color:#c6b9d3;font-size:12px}
+#catalogo .toolbar input{flex:1;min-width:180px}
+#catalogo .chips{display:block}
+@media(max-width:650px){
+ .catalog-item{align-items:flex-start;flex-direction:column}
+ .catalog-actions{width:100%}
+ .catalog-actions button{flex:1;min-height:42px}
+ #catalogo .toolbar{display:grid;grid-template-columns:1fr}
+ #catalogo .toolbar input,#catalogo .toolbar button{width:100%;min-height:44px}
+}

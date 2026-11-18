@@ -50,9 +50,75 @@ $('newWeek').onclick=()=>{
  rows=db.weeks[current]?clone(db.weeks[current]):blank;
  render();
 };
-function options(){for(let [id,arr] of [['locationSelect',db.locations],['laborSelect',db.labors]])$(id).innerHTML=arr.map(s=>`<option value="${escapeHTML(s)}">${escapeHTML(s)}</option>`).join('');$('locationsList').innerHTML=db.locations.map(x=>`<span>${escapeHTML(x)}</span>`).join('');$('laborsList').innerHTML=db.labors.map(x=>`<span>${escapeHTML(x)}</span>`).join('')}
-$('addRow').onclick=()=>{let loc=$('locationSelect').value,lab=$('laborSelect').value;if(!loc||!lab)return;rows.push({location:loc,labor:lab,days:[0,0,0,0,0,0]});render()};
-$('addLocation').onclick=()=>addCatalog('newLocation','locations');$('addLabor').onclick=()=>addCatalog('newLabor','labors');function addCatalog(id,key){let v=$(id).value.trim();if(!v)return;if(db[key].some(x=>x.toLowerCase()===v.toLowerCase()))return alert('Ya existe.');db[key].push(v);$(id).value='';saveDb();options()}
+function options(){
+ for(const [id,arr] of [['locationSelect',db.locations],['laborSelect',db.labors]]){
+  const select=$(id),previous=select.value;
+  select.innerHTML=arr.map(v=>`<option value="${escapeHTML(v)}">${escapeHTML(v)}</option>`).join('');
+  if(arr.includes(previous))select.value=previous;
+ }
+ for(const [id,key] of [['locationsList','locations'],['laborsList','labors']]){
+  $(id).innerHTML=db[key].map((value,index)=>`<div class="catalog-item"><span>${escapeHTML(value)}</span><div class="catalog-actions"><button type="button" data-edit-catalog="${key}" data-index="${index}" title="Editar nombre">✎ Editar</button><button type="button" class="delete" data-remove-catalog="${key}" data-index="${index}" title="Quitar del catálogo">✕</button></div></div>`).join('');
+ }
+}
+function insertGrouped(location,labor){
+ let last=-1;for(let i=0;i<rows.length;i++)if(rows[i].location===location)last=i;
+ const newRow={location,labor,days:emptyDays()};
+ rows.splice(last<0?rows.length:last+1,0,newRow);
+ render();
+}
+$('addRow').onclick=()=>{
+ const loc=$('locationSelect').value,lab=$('laborSelect').value;
+ if(!loc||!lab)return alert('Selecciona una ubicación y una labor.');
+ insertGrouped(loc,lab);
+};
+function addCatalog(id,key){
+ const v=$(id).value.trim().replace(/\\s+/g,' ');
+ if(!v)return alert('Escribe un nombre.');
+ if(db[key].some(x=>x.toLocaleLowerCase('es')===v.toLocaleLowerCase('es')))return alert('Este nombre ya existe.');
+ db[key].push(v);
+ if(!saveDb()){db[key].pop();return}
+ $(id).value='';options();
+ const select=$(key==='locations'?'locationSelect':'laborSelect');select.value=v;
+ alert((key==='locations'?'Ubicación':'Labor')+' agregada. Ya puedes seleccionarla para programar.');
+}
+$('addLocation').onclick=()=>addCatalog('newLocation','locations');
+$('addLabor').onclick=()=>addCatalog('newLabor','labors');
+function renameCatalog(key,index){
+ const old=db[key][index];if(old===undefined)return;
+ const value=prompt('Nuevo nombre:',old);
+ if(value===null)return;
+ const next=value.trim().replace(/\\s+/g,' ');
+ if(!next)return alert('El nombre no puede estar vacío.');
+ if(db[key].some((x,i)=>i!==index&&x.toLocaleLowerCase('es')===next.toLocaleLowerCase('es')))return alert('Ya existe ese nombre.');
+ const prop=key==='locations'?'location':'labor';
+ // Solo cambiar la semana abierta y la plantilla futura.
+ // Las semanas históricas guardadas se mantienen sin modificar.
+ const previous=clone(db),oldRows=clone(rows);
+ db[key][index]=next;
+ rows.forEach(r=>{if(r[prop]===old)r[prop]=next});
+ if(Array.isArray(db.template))db.template.forEach(r=>{if(r[prop]===old)r[prop]=next});
+ if(!saveDb()){db=previous;rows=oldRows;return}
+ options();render();
+ alert('Nombre actualizado en la semana abierta y para futuras programaciones. El historial guardado no cambió. Guarda la semana si deseas conservar el cambio en ella.');
+}
+function removeCatalog(key,index){
+ const name=db[key][index];if(name===undefined)return;
+ const prop=key==='locations'?'location':'labor';
+ const inUse=rows.some(r=>r[prop]===name);
+ if(!confirm('¿Quitar "'+name+'" de las opciones?'+(inUse?' Las filas ya programadas se conservarán.':'')))return;
+ const previous=clone(db);
+ db[key].splice(index,1);
+ // No tocar semanas históricas ni filas existentes.
+ if(!saveDb()){db=previous;return}
+ options();
+}
+$('catalogo').addEventListener('click',event=>{
+ const edit=event.target.closest('[data-edit-catalog]');
+ const remove=event.target.closest('[data-remove-catalog]');
+ if(edit)renameCatalog(edit.dataset.editCatalog,Number(edit.dataset.index));
+ if(remove)removeCatalog(remove.dataset.removeCatalog,Number(remove.dataset.index));
+});
+$('manageCatalog').onclick=()=>show('catalogo');
 for(let nav of document.querySelectorAll('.nav'))nav.onclick=()=>show(nav.dataset.view);function show(id){document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n.dataset.view===id));document.querySelectorAll('.view').forEach(n=>n.classList.toggle('active',n.id===id));if(id==='mensual')renderMonth();if(id==='historial')renderHistory();if(id==='catalogo')options()}
 function monthData(month){let entries=[],total=0,dates=new Set();for(let [start,items] of Object.entries(db.weeks)){let sum=0;for(let i=0;i<6;i++){let d=parse(start);d.setDate(d.getDate()+i);if(iso(d).slice(0,7)!==month)continue;let day=items.reduce((s,r)=>s+(Number(r.days[i])||0),0);sum+=day;dates.add(iso(d))}if(sum){entries.push({start,sum});total+=sum}}return {entries:entries.sort((a,b)=>a.start.localeCompare(b.start)),total,days:dates.size}}
 function renderMonth(){let m=$('month').value,data=monthData(m);$('monthTotal').textContent=data.total;$('monthWeeks').textContent=data.entries.length;$('monthAvg').textContent=data.days?(data.total/data.days).toFixed(1):'0';$('monthRows').innerHTML=data.entries.map(e=>`<tr><td>Semana del ${escapeHTML(e.start)}</td><td>${e.sum}</td></tr>`).join('')||'<tr><td colspan="2">Sin programaciones guardadas</td></tr>';let max=Math.max(1,...data.entries.map(e=>e.sum));$('bars').innerHTML=data.entries.map(e=>`<div class="baritem"><b>${e.sum}</b><div class="bar" style="height:${Math.max(3,150*e.sum/max)}px"></div><span>${escapeHTML(e.start.slice(5))}</span></div>`).join('')||'<p>Guarda semanas para ver el gráfico.</p>'}
