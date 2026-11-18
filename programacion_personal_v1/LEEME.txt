@@ -1,0 +1,38 @@
+SISTEMA DE PROGRAMACIÓN DE PERSONAL — V1
+
+1. Descomprime el ZIP.
+2. Abre index.html con Chrome o Microsoft Edge (doble clic).
+3. Elige el lunes de la semana. Modifica las cantidades por labor y día.
+4. Pulsa GUARDAR para registrar la semana en el navegador.
+5. En REPORTE MENSUAL, elige un mes para ver las jornadas de las semanas guardadas.
+6. En IMPRIMIR / PDF, selecciona 'Guardar como PDF' y activa 'Gráficos de fondo' para conservar los colores.
+7. En DESCARGAR IMAGEN se intenta exportar la tabla como PNG; si el navegador lo bloquea, utiliza PDF.
+8. En HISTORIAL puedes abrir semanas y descargar/importar respaldos JSON.
+
+IMPORTANTE:
+- Los datos se guardan en localStorage del navegador, NO en una base de datos en línea.
+- No borres los datos del navegador sin descargar antes un respaldo JSON.
+- La plantilla trae las labores de la imagen como EJEMPLO; las semanas nuevas empiezan con cantidades en cero.
+- 1 persona programada 1 día equivale a 1 jornada programada. No se registra asistencia real en V1.
+- Los datos se cuentan por fecha real al generar el resumen mensual.
+- La imagen PNG depende de la compatibilidad del navegador. La exportación PDF usa la función de impresión del navegador.
+
+Archivos: index.html, styles.css, app.js.
+No requiere instalar dependencias ni internet.
+
+VERSIÓN MÓVIL V2: interfaz adaptada a celular con tarjetas por labor, campos táctiles, navegación compacta y exportación PDF.
+
+V4: Se corrigió la descarga PNG mediante dibujo nativo Canvas. Funciona sin conexión y exporta todas las labores en formato de tabla.
+
+V4: ubicaciones unificadas por grupos consecutivos en pantalla, PDF y PNG.
+
+V5: encabezado de ubicación unido en un único bloque verde continuo y centrado.
+
+VERSIÓN 6
+- Nueva semana: conserva todas las ubicaciones y labores de la semana visible y vacía las cantidades.
+- Si la semana siguiente ya está guardada, la abre sin sobrescribir sus números.
+- Al elegir una fecha sin programación guardada, se carga la plantilla sin cantidades.
+- Guardar: conserva la semana y actualiza la plantilla de labores para las semanas futuras.
+- El reporte mensual suma exclusivamente las semanas guardadas, por día calendario.
+- El almacenamiento usa la misma clave local que versiones anteriores para mantener el historial.
+IMPORTANTE: abrir desde el mismo origen (por ejemplo, http://127.0.0.1:5500) para recuperar los datos anteriores.
